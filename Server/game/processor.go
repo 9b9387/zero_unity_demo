@@ -63,15 +63,16 @@ func HandleMessage(s *zero.Session, msg *zero.Message) {
 func HandleDisconnect(s *zero.Session, err error) {
 	log.Println(s.GetConn().GetName() + " lost.")
 	uid := s.GetUserID()
-	player := world.GetPlayer(uid)
+	lostPlayer := world.GetPlayer(uid)
+	if lostPlayer == nil {
+		return
+	}
 
-	players := world.GetPlayerList()
-
-	for _, p := range players {
-		message := zero.NewMessage(BroadcastLeave, player.ToJSON())
+	world.RemovePlayer(uid)
+	for _, p := range world.GetPlayerList() {
+		message := zero.NewMessage(BroadcastLeave, lostPlayer.ToJSON())
 		p.Session.GetConn().SendMessage(message)
 	}
-	world.RemovePlayer(player.PlayerID)
 }
 
 // HandleConnect 处理网络连接
